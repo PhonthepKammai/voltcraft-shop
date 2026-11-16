@@ -1,14 +1,15 @@
+
 interface AuthTabsProps {
   active: "login" | "register";
-  onSwitchView: (nextView: "login" | "register") => void;
+  onSwitch: (view: "login" | "register") => void;
 }
 
-export function AuthTabs({ active, onSwitchView }: AuthTabsProps) {
+export default function AuthTabs({ active, onSwitch }: AuthTabsProps) {
   return (
     <div className="grid grid-cols-2 border-b border-slate-800 p-2">
       <button
         type="button"
-        onClick={() => onSwitchView("login")}
+        onClick={() => onSwitch("login")}
         className={`min-h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
           active === "login"
             ? "bg-slate-800 text-white"
@@ -20,7 +21,7 @@ export function AuthTabs({ active, onSwitchView }: AuthTabsProps) {
 
       <button
         type="button"
-        onClick={() => onSwitchView("register")}
+        onClick={() => onSwitch("register")}
         className={`min-h-11 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
           active === "register"
             ? "bg-slate-800 text-white"

@@ -1,43 +1,34 @@
-import { useState, type FormEvent } from "react";
-import { KeyRound, Mail, Lock, ArrowRight, CheckCircle2 } from "lucide-react";
-import { AuthTabs } from "./AuthTabs";
-import { PasswordToggle } from "./PasswordToggle";
-import { DEMO_ACCOUNTS, INPUT_CLASS, LABEL_CLASS } from "../constants";
-import { type ToastType } from "../types";
+import { Lock, Mail, ArrowRight, CheckCircle2, KeyRound } from "lucide-react";
+import { DEMO_ACCOUNTS } from "../demoAccounts";
+import { INPUT_CLASS, LABEL_CLASS } from "../constants";
+import type { AuthApi } from "../hooks/useAuth";
+import type { ShowToast } from "../types";
+import AuthTabs from "./AuthTabs";
+import PasswordToggle from "./ui/PasswordToggle";
 
 interface LoginViewProps {
-  loginEmail: string;
-  setLoginEmail: (email: string) => void;
-  loginPassword: string;
-  setLoginPassword: (password: string) => void;
-  isLoading: boolean;
-  onLogin: (event: FormEvent<HTMLFormElement>) => void;
-  onSwitchView: (nextView: "login" | "register") => void;
-  showToast: (message: string, type?: ToastType) => void;
+  auth: AuthApi;
+  showToast: ShowToast;
 }
 
-export function LoginView({
-  loginEmail,
-  setLoginEmail,
-  loginPassword,
-  setLoginPassword,
-  isLoading,
-  onLogin,
-  onSwitchView,
-  showToast,
-}: LoginViewProps) {
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
-
-  const fillDemoAccount = (email: string) => {
-    setLoginEmail(email);
-    setLoginPassword("password123");
-    showToast("Demo credentials filled successfully.", "info");
-  };
+export default function LoginView({ auth, showToast }: LoginViewProps) {
+  const {
+    isLoading,
+    loginEmail,
+    setLoginEmail,
+    loginPassword,
+    setLoginPassword,
+    showLoginPassword,
+    setShowLoginPassword,
+    handleLogin,
+    fillDemoAccount,
+    switchView,
+  } = auth;
 
   return (
     <section className="mx-auto w-full max-w-md animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl">
-        <AuthTabs active="login" onSwitchView={onSwitchView} />
+        <AuthTabs active="login" onSwitch={switchView} />
 
         <div className="p-5 sm:p-8">
           <div className="mb-7">
@@ -54,9 +45,11 @@ export function LoginView({
             </p>
           </div>
 
-          <form onSubmit={onLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className={LABEL_CLASS}>Email Address</label>
+              <label className={LABEL_CLASS}>
+                Email Address
+              </label>
 
               <div className="relative">
                 <Mail
@@ -67,7 +60,9 @@ export function LoginView({
                 <input
                   type="email"
                   value={loginEmail}
-                  onChange={(event) => setLoginEmail(event.target.value)}
+                  onChange={(event) =>
+                    setLoginEmail(event.target.value)
+                  }
                   placeholder="name@example.com"
                   autoComplete="email"
                   className={`${INPUT_CLASS} pl-11`}
@@ -105,7 +100,9 @@ export function LoginView({
                 <input
                   type={showLoginPassword ? "text" : "password"}
                   value={loginPassword}
-                  onChange={(event) => setLoginPassword(event.target.value)}
+                  onChange={(event) =>
+                    setLoginPassword(event.target.value)
+                  }
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   className={`${INPUT_CLASS} pl-11 pr-12`}
@@ -114,7 +111,9 @@ export function LoginView({
 
                 <PasswordToggle
                   visible={showLoginPassword}
-                  onToggle={() => setShowLoginPassword(!showLoginPassword)}
+                  onToggle={() =>
+                    setShowLoginPassword(!showLoginPassword)
+                  }
                 />
               </div>
             </div>
@@ -155,14 +154,18 @@ export function LoginView({
                 <button
                   key={account.email}
                   type="button"
-                  onClick={() => fillDemoAccount(account.email)}
+                  onClick={() =>
+                    fillDemoAccount(account.email)
+                  }
                   className={`flex min-h-[68px] items-center gap-3 rounded-xl border p-3 text-left transition-all active:scale-95 ${
                     loginEmail === account.email
                       ? "border-amber-500/60 bg-amber-500/10"
                       : "border-slate-700 bg-slate-950 hover:border-slate-500 hover:bg-slate-800"
                   }`}
                 >
-                  <div className={account.color}>{account.icon}</div>
+                  <div className={account.color}>
+                    {account.icon}
+                  </div>
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-bold text-slate-100">
@@ -200,7 +203,7 @@ export function LoginView({
         New to VoltCraft?{" "}
         <button
           type="button"
-          onClick={() => onSwitchView("register")}
+          onClick={() => switchView("register")}
           className="min-h-11 font-bold text-amber-400 hover:text-amber-300"
         >
           Create an account

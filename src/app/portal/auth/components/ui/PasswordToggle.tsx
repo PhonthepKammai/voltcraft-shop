@@ -5,7 +5,7 @@ interface PasswordToggleProps {
   onToggle: () => void;
 }
 
-export function PasswordToggle({ visible, onToggle }: PasswordToggleProps) {
+export default function PasswordToggle({ visible, onToggle }: PasswordToggleProps) {
   return (
     <button
       type="button"

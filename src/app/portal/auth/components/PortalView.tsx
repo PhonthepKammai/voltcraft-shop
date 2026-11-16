@@ -1,28 +1,22 @@
-import {
-  Zap,
-  Activity,
-  LayoutDashboard,
-  Package,
-  Users,
-  ChevronRight,
-  LogOut,
-} from "lucide-react";
-import { ROLE_CONFIG } from "../constants";
-import { type UserAccount, type Role } from "../types";
+import { Zap, Package, LayoutDashboard, LogOut, ChevronRight, Users, Activity } from "lucide-react";
+import { ROLE_CONFIG } from "../roleConfig";
+import type { Role, UserAccount } from "../types";
 
 interface PortalViewProps {
-  currentUser: UserAccount;
-  selectedRole: Role;
-  onSwitchRole: () => void;
-  onSignOut: () => void;
+  currentUser: UserAccount | null;
+  selectedRole: Role | null;
+  handleSwitchRole: () => void;
+  handleSignOut: () => void;
 }
 
-export function PortalView({
+export default function PortalView({
   currentUser,
   selectedRole,
-  onSwitchRole,
-  onSignOut,
+  handleSwitchRole,
+  handleSignOut,
 }: PortalViewProps) {
+  if (!currentUser || !selectedRole) return null;
+
   const config = ROLE_CONFIG[selectedRole];
 
   const moduleIcons = [
@@ -43,7 +37,9 @@ export function PortalView({
               </div>
 
               <div>
-                <p className="font-extrabold text-white">VoltCraft</p>
+                <p className="font-extrabold text-white">
+                  VoltCraft
+                </p>
 
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Operational Portal
@@ -81,7 +77,10 @@ export function PortalView({
         <div className="p-6 sm:p-8">
           <div className="mb-7 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
             <div className="mb-2 flex items-center gap-2">
-              <Activity size={17} className="text-emerald-400" />
+              <Activity
+                size={17}
+                className="text-emerald-400"
+              />
 
               <span className="text-sm font-bold text-emerald-300">
                 Portal Access Confirmed
@@ -90,14 +89,18 @@ export function PortalView({
 
             <p className="text-xs leading-relaxed text-slate-300">
               You are currently operating in the{" "}
-              <span className="font-bold text-white">{config.title}</span>{" "}
-              context. This page is a frontend demonstration of the role-based
-              portal entry.
+              <span className="font-bold text-white">
+                {config.title}
+              </span>{" "}
+              context. This page is a frontend demonstration of
+              the role-based portal entry.
             </p>
           </div>
 
           <div className="mb-5 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white">Available Modules</h3>
+            <h3 className="text-sm font-bold text-white">
+              Available Modules
+            </h3>
 
             <span className="text-xs text-slate-400">
               {config.features.length} modules
@@ -115,7 +118,10 @@ export function PortalView({
                     {moduleIcons[index]}
                   </div>
 
-                  <ChevronRight size={16} className="text-slate-400" />
+                  <ChevronRight
+                    size={16}
+                    className="text-slate-400"
+                  />
                 </div>
 
                 <p className="mt-4 text-xs font-bold text-slate-200">
@@ -128,7 +134,9 @@ export function PortalView({
           {/* Session Information */}
           <div className="mt-6 flex flex-col gap-4 rounded-xl border border-slate-700 bg-slate-950 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-200">Current Account</p>
+              <p className="text-xs font-bold text-slate-200">
+                Current Account
+              </p>
 
               <p className="mt-1 truncate text-xs text-slate-300">
                 {currentUser.email}
@@ -146,7 +154,7 @@ export function PortalView({
             {currentUser.roles.length > 1 && (
               <button
                 type="button"
-                onClick={onSwitchRole}
+                onClick={handleSwitchRole}
                 className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-600 text-sm font-bold text-slate-200 transition hover:bg-slate-800 active:scale-95"
               >
                 <LayoutDashboard size={17} />
@@ -156,7 +164,7 @@ export function PortalView({
 
             <button
               type="button"
-              onClick={onSignOut}
+              onClick={handleSignOut}
               className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-500 text-sm font-bold text-slate-950 transition hover:bg-amber-400 active:scale-95"
             >
               <LogOut size={17} />

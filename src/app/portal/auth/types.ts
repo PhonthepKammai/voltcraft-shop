@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export type Role = "customer" | "sales" | "warehouse" | "admin";
 
@@ -35,10 +35,4 @@ export interface ToastData {
   type: ToastType;
 }
 
-export interface DemoAccount {
-  label: string;
-  description: string;
-  email: string;
-  icon: ReactNode;
-  color: string;
-}
+export type ShowToast = (message: string, type?: ToastType) => void;

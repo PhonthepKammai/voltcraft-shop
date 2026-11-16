@@ -1,26 +1,16 @@
-import {
-  LayoutDashboard,
-  CheckCircle2,
-  Shield,
-  User,
-  ArrowRight,
-  Lock,
-  LogOut,
-} from "lucide-react";
-import { ROLE_CONFIG } from "../constants";
-import { type UserAccount, type Role } from "../types";
+import { Lock, User, Shield, ArrowRight, CheckCircle2, LayoutDashboard, LogOut } from "lucide-react";
+import { ROLE_CONFIG } from "../roleConfig";
+import type { Role, UserAccount } from "../types";
 
 interface GatewayViewProps {
-  currentUser: UserAccount;
-  onEnterRole: (role: Role, user: UserAccount) => void;
-  onSignOut: () => void;
+  currentUser: UserAccount | null;
+  enterRole: (role: Role, user: UserAccount) => void;
+  handleSignOut: () => void;
 }
 
-export function GatewayView({
-  currentUser,
-  onEnterRole,
-  onSignOut,
-}: GatewayViewProps) {
+export default function GatewayView({ currentUser, enterRole, handleSignOut }: GatewayViewProps) {
+  if (!currentUser) return null;
+
   return (
     <section className="mx-auto w-full max-w-4xl animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* Greeting */}
@@ -50,8 +40,8 @@ export function GatewayView({
         </h2>
 
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-slate-300">
-          Select your operational session context for this login. Your account
-          has access to multiple VoltCraft environments.
+          Select your operational session context for this login.
+          Your account has access to multiple VoltCraft environments.
         </p>
       </div>
 
@@ -152,7 +142,9 @@ export function GatewayView({
               {/* Entry Button */}
               <button
                 type="button"
-                onClick={() => onEnterRole(role, currentUser)}
+                onClick={() =>
+                  enterRole(role, currentUser)
+                }
                 className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${config.buttonClass}`}
               >
                 Enter Portal
@@ -168,12 +160,14 @@ export function GatewayView({
         <div className="flex items-center gap-2 text-xs text-slate-300">
           <Lock size={15} className="shrink-0 text-slate-400" />
 
-          <span>Access is controlled by assigned account permissions.</span>
+          <span>
+            Access is controlled by assigned account permissions.
+          </span>
         </div>
 
         <button
           type="button"
-          onClick={onSignOut}
+          onClick={handleSignOut}
           className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-slate-600 px-5 text-sm font-bold text-slate-200 transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-300 active:scale-95 sm:w-auto"
         >
           <LogOut size={17} />

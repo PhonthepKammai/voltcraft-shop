@@ -1,12 +1,12 @@
-import { CheckCircle2, AlertCircle, Activity, X } from "lucide-react";
-import { type ToastData } from "../types";
+import { CheckCircle2, Activity, X, AlertCircle } from "lucide-react";
+import type { ToastData } from "../../types";
 
-interface ToastNotificationProps {
+interface ToastProps {
   toast: ToastData | null;
   onDismiss: () => void;
 }
 
-export function ToastNotification({ toast, onDismiss }: ToastNotificationProps) {
+export default function Toast({ toast, onDismiss }: ToastProps) {
   if (!toast) return null;
 
   return (
@@ -23,11 +23,20 @@ export function ToastNotification({ toast, onDismiss }: ToastNotificationProps) 
         }`}
       >
         {toast.type === "success" ? (
-          <CheckCircle2 size={20} className="shrink-0 text-emerald-400" />
+          <CheckCircle2
+            size={20}
+            className="shrink-0 text-emerald-400"
+          />
         ) : toast.type === "error" ? (
-          <AlertCircle size={20} className="shrink-0 text-red-400" />
+          <AlertCircle
+            size={20}
+            className="shrink-0 text-red-400"
+          />
         ) : (
-          <Activity size={20} className="shrink-0 text-blue-400" />
+          <Activity
+            size={20}
+            className="shrink-0 text-blue-400"
+          />
         )}
 
         <p className="min-w-0 flex-1 text-sm text-slate-100">
@@ -36,7 +45,7 @@ export function ToastNotification({ toast, onDismiss }: ToastNotificationProps) 
 
         <button
           type="button"
-          onClick={onDismiss}
+          onClick={() => onDismiss()}
           aria-label="Dismiss notification"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-300 transition hover:bg-slate-800 hover:text-white active:scale-95"
         >

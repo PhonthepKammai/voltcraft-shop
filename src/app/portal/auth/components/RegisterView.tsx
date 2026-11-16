@@ -1,72 +1,41 @@
-import { useState, type FormEvent } from "react";
-import {
-  User,
-  Mail,
-  Lock,
-  CheckCircle2,
-  AlertCircle,
-  Building2,
-  ArrowRight,
-} from "lucide-react";
-import { AuthTabs } from "./AuthTabs";
-import { PasswordToggle } from "./PasswordToggle";
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  PASSWORD_STRENGTH_LABELS,
-} from "../constants";
+import { Lock, Mail, User, ArrowRight, CheckCircle2, Building2, AlertCircle } from "lucide-react";
+import { INPUT_CLASS, LABEL_CLASS } from "../constants";
+import type { AuthApi } from "../hooks/useAuth";
+import { PASSWORD_STRENGTH_LABELS, getPasswordStrength } from "../utils";
+import AuthTabs from "./AuthTabs";
+import PasswordToggle from "./ui/PasswordToggle";
 
 interface RegisterViewProps {
-  fullName: string;
-  setFullName: (val: string) => void;
-  registerEmail: string;
-  setRegisterEmail: (val: string) => void;
-  registerPassword: string;
-  setRegisterPassword: (val: string) => void;
-  confirmPassword: string;
-  setConfirmPassword: (val: string) => void;
-  isCorporateStaff: boolean;
-  setIsCorporateStaff: (val: boolean) => void;
-  isLoading: boolean;
-  onRegister: (event: FormEvent<HTMLFormElement>) => void;
-  onSwitchView: (nextView: "login" | "register") => void;
+  auth: AuthApi;
 }
 
-const getPasswordStrength = (password: string) => {
-  if (!password) return 0;
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  return score;
-};
-
-export function RegisterView({
-  fullName,
-  setFullName,
-  registerEmail,
-  setRegisterEmail,
-  registerPassword,
-  setRegisterPassword,
-  confirmPassword,
-  setConfirmPassword,
-  isCorporateStaff,
-  setIsCorporateStaff,
-  isLoading,
-  onRegister,
-  onSwitchView,
-}: RegisterViewProps) {
-  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+export default function RegisterView({ auth }: RegisterViewProps) {
+  const {
+    isLoading,
+    fullName,
+    setFullName,
+    registerEmail,
+    setRegisterEmail,
+    registerPassword,
+    setRegisterPassword,
+    confirmPassword,
+    setConfirmPassword,
+    showRegisterPassword,
+    setShowRegisterPassword,
+    showConfirmPassword,
+    setShowConfirmPassword,
+    isCorporateStaff,
+    setIsCorporateStaff,
+    handleRegister,
+    switchView,
+  } = auth;
 
   const strength = getPasswordStrength(registerPassword);
 
   return (
     <section className="mx-auto w-full max-w-md animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl">
-        <AuthTabs active="register" onSwitchView={onSwitchView} />
+        <AuthTabs active="register" onSwitch={switchView} />
 
         <div className="p-5 sm:p-8">
           <div className="mb-7">
@@ -83,10 +52,15 @@ export function RegisterView({
             </p>
           </div>
 
-          <form onSubmit={onRegister} className="space-y-4">
+          <form
+            onSubmit={handleRegister}
+            className="space-y-4"
+          >
             {/* Full Name */}
             <div>
-              <label className={LABEL_CLASS}>Full Name</label>
+              <label className={LABEL_CLASS}>
+                Full Name
+              </label>
 
               <div className="relative">
                 <User
@@ -97,7 +71,9 @@ export function RegisterView({
                 <input
                   type="text"
                   value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
+                  onChange={(event) =>
+                    setFullName(event.target.value)
+                  }
                   placeholder="Your full name"
                   autoComplete="name"
                   className={`${INPUT_CLASS} pl-11`}
@@ -108,7 +84,9 @@ export function RegisterView({
 
             {/* Email */}
             <div>
-              <label className={LABEL_CLASS}>Email Address</label>
+              <label className={LABEL_CLASS}>
+                Email Address
+              </label>
 
               <div className="relative">
                 <Mail
@@ -119,7 +97,9 @@ export function RegisterView({
                 <input
                   type="email"
                   value={registerEmail}
-                  onChange={(event) => setRegisterEmail(event.target.value)}
+                  onChange={(event) =>
+                    setRegisterEmail(event.target.value)
+                  }
                   placeholder="name@example.com"
                   autoComplete="email"
                   className={`${INPUT_CLASS} pl-11`}
@@ -130,7 +110,9 @@ export function RegisterView({
 
             {/* Password */}
             <div>
-              <label className={LABEL_CLASS}>Password</label>
+              <label className={LABEL_CLASS}>
+                Password
+              </label>
 
               <div className="relative">
                 <Lock
@@ -139,9 +121,13 @@ export function RegisterView({
                 />
 
                 <input
-                  type={showRegisterPassword ? "text" : "password"}
+                  type={
+                    showRegisterPassword ? "text" : "password"
+                  }
                   value={registerPassword}
-                  onChange={(event) => setRegisterPassword(event.target.value)}
+                  onChange={(event) =>
+                    setRegisterPassword(event.target.value)
+                  }
                   placeholder="Minimum 8 characters"
                   autoComplete="new-password"
                   className={`${INPUT_CLASS} pl-11 pr-12`}
@@ -199,7 +185,9 @@ export function RegisterView({
 
             {/* Confirm Password */}
             <div>
-              <label className={LABEL_CLASS}>Confirm Password</label>
+              <label className={LABEL_CLASS}>
+                Confirm Password
+              </label>
 
               <div className="relative">
                 <Lock
@@ -208,9 +196,13 @@ export function RegisterView({
                 />
 
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={
+                    showConfirmPassword ? "text" : "password"
+                  }
                   value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  onChange={(event) =>
+                    setConfirmPassword(event.target.value)
+                  }
                   placeholder="Re-enter your password"
                   autoComplete="new-password"
                   className={`${INPUT_CLASS} pl-11 pr-12`}
@@ -259,7 +251,10 @@ export function RegisterView({
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <Building2 size={17} className="shrink-0 text-amber-400" />
+                  <Building2
+                    size={17}
+                    className="shrink-0 text-amber-400"
+                  />
 
                   <span className="text-sm font-bold text-slate-100">
                     Register as Corporate Staff / Partner
@@ -267,8 +262,9 @@ export function RegisterView({
                 </div>
 
                 <p className="mt-2 text-xs leading-relaxed text-slate-300">
-                  Register your interest in corporate access. Additional staff
-                  permissions require administrator verification.
+                  Register your interest in corporate access.
+                  Additional staff permissions require administrator
+                  verification.
                 </p>
               </div>
             </label>
@@ -293,8 +289,8 @@ export function RegisterView({
             </button>
 
             <p className="text-center text-xs leading-relaxed text-slate-400">
-              By creating an account, you agree to our Terms of Service and
-              Privacy Policy.
+              By creating an account, you agree to our Terms of
+              Service and Privacy Policy.
             </p>
           </form>
         </div>
@@ -304,7 +300,7 @@ export function RegisterView({
         Already have an account?{" "}
         <button
           type="button"
-          onClick={() => onSwitchView("login")}
+          onClick={() => switchView("login")}
           className="min-h-11 font-bold text-amber-400 hover:text-amber-300"
         >
           Sign in

@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
 
-export function GlobalFooter() {
+export default function GlobalFooter() {
   return (
     <footer className="mt-auto pt-12 text-center">
       <div className="mb-3 flex items-center justify-center gap-2 text-slate-400">

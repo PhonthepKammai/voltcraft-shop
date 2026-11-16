@@ -1,6 +1,6 @@
 import { Zap } from "lucide-react";
 
-export function BrandHeader() {
+export default function BrandHeader() {
   return (
     <header className="mb-8 flex flex-col items-center text-center sm:mb-10">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/40 bg-amber-500/10 shadow-[0_0_40px_rgba(245,158,11,0.15)]">

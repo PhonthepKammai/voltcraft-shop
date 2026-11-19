@@ -10,14 +10,6 @@ export type AuditEventType =
   | "ROLE_MODIFIED"
   | "ORDER_DISPATCHED";
 
-export type ApplianceCategory =
-  | "Climate Control"
-  | "Refrigeration"
-  | "Laundry Systems"
-  | "Smart Home & Robotics"
-  | "Air Purification"
-  | "Kitchen Power";
-
 export interface UserAccount {
   id: string;
   fullName: string;
@@ -34,7 +26,13 @@ export interface ApplianceItem {
   id: string;
   sku: string;
   name: string;
-  category: ApplianceCategory;
+  category:
+    | "Climate Control"
+    | "Refrigeration"
+    | "Laundry Systems"
+    | "Smart Home & Robotics"
+    | "Air Purification"
+    | "Kitchen Power";
   wattageOrInverter: string;
   energyStarRating: string;
   priceTHB: number;
@@ -55,6 +53,13 @@ export interface AuditLogEntry {
   terminalIp: string;
 }
 
+export type ToastType = "success" | "warning" | "info";
+
+export interface ToastData {
+  message: string;
+  type: ToastType;
+}
+
 export interface KpiStats {
   totalUsers: number;
   staffCount: number;
@@ -66,7 +71,7 @@ export interface KpiStats {
   lowStockCount: number;
 }
 
-export interface ToastNotification {
-  message: string;
-  type: "success" | "warning" | "info";
+export interface PageMeta {
+  short: string;
+  breadcrumb: string;
 }

@@ -1,58 +1,63 @@
-import React from "react";
-import {
-  LayoutDashboard,
-  Users,
-  Package,
-  History,
-  ChevronRight,
-  LogOut,
-  Zap,
-} from "lucide-react";
-import { NavTab } from "../types";
+import type { Dispatch, SetStateAction } from "react";
+import { LayoutDashboard, Users, Package, History, ChevronRight, LogOut, Zap, X } from "lucide-react";
 import { THEME } from "../theme";
+import type { NavTab, UserAccount, AuditLogEntry, ToastType, KpiStats } from "../types";
 
-interface AdminSidebarProps {
+interface SidebarContentProps {
   activeTab: NavTab;
-  onSelectTab: (tab: NavTab) => void;
-  userCount: number;
-  lowStockCount: number;
-  auditLogCount: number;
-  onSignOut: () => void;
+  handleSelectTab: (tab: NavTab) => void;
+  setIsMobileMenuOpen: Dispatch<SetStateAction<boolean>>;
+  kpiStats: KpiStats;
+  triggerToast: (message: string, type?: ToastType) => void;
+  users: UserAccount[];
+  auditLogs: AuditLogEntry[];
 }
 
-export function AdminSidebar({
+export default function SidebarContent({
   activeTab,
-  onSelectTab,
-  userCount,
-  lowStockCount,
-  auditLogCount,
-  onSignOut,
-}: AdminSidebarProps) {
+  handleSelectTab,
+  setIsMobileMenuOpen,
+  kpiStats,
+  triggerToast,
+  users,
+  auditLogs,
+}: SidebarContentProps) {
   return (
-    <aside className="w-72 bg-slate-950 text-slate-100 flex flex-col justify-between shrink-0 border-r border-slate-800 select-none">
-      <div>
+    <div className="flex flex-col justify-between h-full">
+      <div className="overflow-y-auto">
         {/* Brand Header */}
-        <div className="p-6 border-b border-slate-800/90 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-500/10">
-            <Zap className="w-6 h-6 text-amber-500 fill-amber-500" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-extrabold tracking-tight text-white">
-                VOLT<span className="text-amber-500">CRAFT</span>
-              </span>
-              <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                CORE
-              </span>
+        <div className="p-5 lg:p-6 border-b border-slate-800/90 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-500/10 shrink-0">
+              <Zap className="w-5 h-5 lg:w-6 lg:h-6 text-amber-500 fill-amber-500" />
             </div>
-            <p className="text-[11px] font-mono tracking-widest text-slate-400 uppercase mt-0.5">
-              {THEME.subtitle}
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-base lg:text-lg font-extrabold tracking-tight text-white">
+                  VOLT<span className="text-amber-500">CRAFT</span>
+                </span>
+                <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  CORE
+                </span>
+              </div>
+              <p className="text-[10px] lg:text-[11px] font-mono tracking-widest text-slate-400 uppercase mt-0.5">
+                {THEME.subtitle}
+              </p>
+            </div>
           </div>
+
+          {/* Mobile Close Drawer Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close navigation menu"
+            className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* 4-Role Architecture Status Pill */}
-        <div className="px-5 py-3.5 border-b border-slate-900 bg-slate-900/50">
+        <div className="px-5 py-3 border-b border-slate-900 bg-slate-900/50">
           <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
             <span>4-ROLE ECOSYSTEM SYNC</span>
             <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold">
@@ -69,8 +74,7 @@ export function AdminSidebar({
           </div>
 
           <button
-            type="button"
-            onClick={() => onSelectTab("overview")}
+            onClick={() => handleSelectTab("overview")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "overview"
                 ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/15 font-bold"
@@ -78,15 +82,14 @@ export function AdminSidebar({
             }`}
           >
             <span className="flex items-center gap-3">
-              <LayoutDashboard className="w-4 h-4" />
+              <LayoutDashboard className="w-4 h-4 shrink-0" />
               <span>Overview & Operational KPIs</span>
             </span>
             <ChevronRight className="w-3.5 h-3.5 opacity-70" />
           </button>
 
           <button
-            type="button"
-            onClick={() => onSelectTab("users")}
+            onClick={() => handleSelectTab("users")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "users"
                 ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/15 font-bold"
@@ -94,7 +97,7 @@ export function AdminSidebar({
             }`}
           >
             <span className="flex items-center gap-3">
-              <Users className="w-4 h-4" />
+              <Users className="w-4 h-4 shrink-0" />
               <span>User & RBAC Management</span>
             </span>
             <span
@@ -104,13 +107,12 @@ export function AdminSidebar({
                   : "bg-slate-800 text-slate-300"
               }`}
             >
-              {userCount}
+              {users.length}
             </span>
           </button>
 
           <button
-            type="button"
-            onClick={() => onSelectTab("catalog")}
+            onClick={() => handleSelectTab("catalog")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "catalog"
                 ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/15 font-bold"
@@ -118,10 +120,10 @@ export function AdminSidebar({
             }`}
           >
             <span className="flex items-center gap-3">
-              <Package className="w-4 h-4" />
+              <Package className="w-4 h-4 shrink-0" />
               <span>Master Catalog & Inventory</span>
             </span>
-            {lowStockCount > 0 && (
+            {kpiStats.lowStockCount > 0 && (
               <span
                 className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
                   activeTab === "catalog"
@@ -129,14 +131,13 @@ export function AdminSidebar({
                     : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                 }`}
               >
-                {lowStockCount} Alert
+                {kpiStats.lowStockCount} Alert
               </span>
             )}
           </button>
 
           <button
-            type="button"
-            onClick={() => onSelectTab("audit")}
+            onClick={() => handleSelectTab("audit")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "audit"
                 ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/15 font-bold"
@@ -144,7 +145,7 @@ export function AdminSidebar({
             }`}
           >
             <span className="flex items-center gap-3">
-              <History className="w-4 h-4" />
+              <History className="w-4 h-4 shrink-0" />
               <span>System Security Audit Logs</span>
             </span>
             <span
@@ -154,12 +155,12 @@ export function AdminSidebar({
                   : "bg-slate-800 text-slate-300"
               }`}
             >
-              {auditLogCount}
+              {auditLogs.length}
             </span>
           </button>
 
           {/* Role Architecture Reference Box */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80 px-2 space-y-2.5">
+          <div className="mt-6 pt-5 border-t border-slate-800/80 px-1 space-y-2.5">
             <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold px-1">
               Active Role Ecosystem
             </div>
@@ -186,10 +187,10 @@ export function AdminSidebar({
       </div>
 
       {/* Footer Super Admin Profile Widget */}
-      <div className="p-4 border-t border-slate-800 bg-slate-900/60">
+      <div className="p-4 border-t border-slate-800 bg-slate-900/60 shrink-0">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="relative">
+            <div className="relative shrink-0">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 font-extrabold flex items-center justify-center text-sm">
                 PK
               </div>
@@ -199,14 +200,18 @@ export function AdminSidebar({
               <p className="text-xs font-bold text-white truncate">
                 Phonthep Kammai
               </p>
-              <span className="inline-block text-[10px] font-semibold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 mt-0.5">
+              <span className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 mt-0.5">
                 Full Governance
               </span>
             </div>
           </div>
           <button
-            type="button"
-            onClick={onSignOut}
+            onClick={() =>
+              triggerToast(
+                "Session locked. Re-authentication required for production sign-out.",
+                "info"
+              )
+            }
             title="Sign Out"
             className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
@@ -214,6 +219,6 @@ export function AdminSidebar({
           </button>
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

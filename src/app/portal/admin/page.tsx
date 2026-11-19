@@ -1,464 +1,256 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import {
-  NavTab,
-  UserAccount,
-  ApplianceItem,
-  AuditLogEntry,
-  DepartmentType,
-  AccountStatus,
-  AuditEventType,
-  RoleType,
-  ToastNotification,
-  KpiStats,
-} from "./types";
+import { useState } from "react";
+import AddStaffModal from "./components/AddStaffModal";
+import AuditTab from "./components/AuditTab";
+import BottomNav from "./components/BottomNav";
+import CatalogTab from "./components/CatalogTab";
+import EditRolesModal from "./components/EditRolesModal";
+import KpiGrid from "./components/KpiGrid";
+import MobileDrawer from "./components/MobileDrawer";
+import OverviewTab from "./components/OverviewTab";
+import SidebarContent from "./components/SidebarContent";
+import TopBar from "./components/TopBar";
+import UsersTab from "./components/UsersTab";
+import Toast from "./components/ui/Toast";
+import { useAuditLog } from "./hooks/useAuditLog";
+import { useCatalog } from "./hooks/useCatalog";
+import { useKpiStats } from "./hooks/useKpiStats";
+import { useToast } from "./hooks/useToast";
+import { useUsers } from "./hooks/useUsers";
 import { THEME } from "./theme";
-import {
-  INITIAL_USERS,
-  INITIAL_APPLIANCES,
-  INITIAL_AUDIT_LOGS,
-} from "./admin-mock";
-import { getCurrentFormattedTimestamp } from "./formatters";
-import { ToastBanner } from "./components/ui/ToastBanner";
-import { AdminSidebar } from "./components/AdminSidebar";
-import { AdminTopBar } from "./components/AdminTopBar";
-import { ExecutiveKpiGrid } from "./components/ExecutiveKpiGrid";
-import { OverviewSection } from "./components/OverviewSection";
-import { UserRbacTable } from "./components/UserRbacTable";
-import { CatalogOversightTable } from "./components/CatalogOversightTable";
-import { AuditLogTable } from "./components/AuditLogTable";
-import { AddStaffModal } from "./components/AddStaffModal";
-import { EditRolesModal } from "./components/EditRolesModal";
+import type { NavTab } from "./types";
+import { getPageMeta } from "./utils";
 
 export default function VoltCraftSuperAdminHub() {
-  // Navigation & Global Search State
+  // Navigation & mobile drawer state
   const [activeTab, setActiveTab] = useState<NavTab>("users");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  // Core Data States
-  const [users, setUsers] = useState<UserAccount[]>(INITIAL_USERS);
-  const [appliances, setAppliances] =
-    useState<ApplianceItem[]>(INITIAL_APPLIANCES);
-  const [auditLogs, setAuditLogs] =
-    useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
+  // Domain hooks
+  const { toast, triggerToast, dismissToast } = useToast();
+  const auditApi = useAuditLog(globalSearch);
+  const usersApi = useUsers(
+    globalSearch,
+    auditApi.appendAuditLog,
+    triggerToast,
+  );
+  const catalogApi = useCatalog(
+    globalSearch,
+    auditApi.appendAuditLog,
+    triggerToast,
+  );
+  const kpiStats = useKpiStats(usersApi.users, catalogApi.appliances);
+  const pageMeta = getPageMeta(activeTab);
 
-  // User & RBAC Filter States
-  const [userSearch, setUserSearch] = useState("");
-  const [deptFilter, setDeptFilter] = useState<"All" | DepartmentType>("All");
-  const [statusFilter, setStatusFilter] = useState<"All" | AccountStatus>("All");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const {
+    deptFilter,
+    editingUserRoles,
+    filteredUsers,
+    formError,
+    handleCreateStaffAccount,
+    handleDeleteUser,
+    handleDispatchPasswordReset,
+    handleSaveEditedRoles,
+    handleToggleNewUserRole,
+    handleToggleTempRole,
+    handleToggleUserStatus,
+    isAddUserModalOpen,
+    newDepartment,
+    newEmail,
+    newFullName,
+    newPassword,
+    newRoles,
+    openEditRolesModal,
+    setDeptFilter,
+    setEditingUserRoles,
+    setIsAddUserModalOpen,
+    setNewDepartment,
+    setNewEmail,
+    setNewFullName,
+    setNewPassword,
+    setSortOrder,
+    setStatusFilter,
+    setTempEditedDept,
+    setUserSearch,
+    sortOrder,
+    statusFilter,
+    tempEditedDept,
+    tempEditedRoles,
+    userSearch,
+    users,
+  } = usersApi;
 
-  // Catalog Filter States
-  const [catalogSearch, setCatalogSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const {
+    appliances,
+    catalogSearch,
+    categoryFilter,
+    editingThresholdId,
+    filteredAppliances,
+    handleQuickEmergencyRestock,
+    handleSaveSafetyThreshold,
+    handleTogglePublishAppliance,
+    setCatalogSearch,
+    setCategoryFilter,
+    setEditingThresholdId,
+    setTempThresholdValue,
+    tempThresholdValue,
+  } = catalogApi;
 
-  // Audit Filter State
-  const [auditEventFilter, setAuditEventFilter] = useState<
-    "ALL" | AuditEventType
-  >("ALL");
+  const {
+    auditEventFilter,
+    auditLogs,
+    filteredAuditLogs,
+    setAuditEventFilter,
+  } = auditApi;
 
-  // Modals State
-  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [editingUserRoles, setEditingUserRoles] = useState<UserAccount | null>(
-    null
+  const handleSelectTab = (tab: NavTab) => {
+    setActiveTab(tab);
+    setIsMobileMenuOpen(false);
+    setIsNotificationOpen(false);
+  };
+
+  const sidebar = (
+    <SidebarContent
+      activeTab={activeTab}
+      handleSelectTab={handleSelectTab}
+      setIsMobileMenuOpen={setIsMobileMenuOpen}
+      kpiStats={kpiStats}
+      triggerToast={triggerToast}
+      users={users}
+      auditLogs={auditLogs}
+    />
   );
 
-  // Toast Notification State
-  const [toast, setToast] = useState<ToastNotification | null>(null);
-
-  const triggerToast = (
-    message: string,
-    type: "success" | "warning" | "info" = "success"
-  ) => {
-    setToast({ message, type });
-    setTimeout(() => {
-      setToast((prev) => (prev?.message === message ? null : prev));
-    }, 3600);
-  };
-
-  const appendAuditLog = (
-    eventType: AuditEventType,
-    summary: string,
-    operatorName = "Phonthep Kammai",
-    operatorRole: RoleType = "Admin"
-  ) => {
-    const newEntry: AuditLogEntry = {
-      id: `LOG-${9082 + auditLogs.length}`,
-      timestamp: getCurrentFormattedTimestamp(),
-      operatorName,
-      operatorRole,
-      eventType,
-      summary,
-      terminalIp: "10.24.01.01 (ADMIN-CORE-01)",
-    };
-    setAuditLogs((prev) => [newEntry, ...prev]);
-  };
-
-  // Executive KPI Calculations
-  const kpiStats: KpiStats = useMemo(() => {
-    const staffCount = users.filter((u) =>
-      u.roles.some((r) => r === "Admin" || r === "Sales" || r === "Warehouse")
-    ).length;
-    const customerCount = users.filter((u) =>
-      u.roles.includes("Customer")
-    ).length;
-
-    const grossAssetValue = appliances.reduce(
-      (sum, item) => sum + item.priceTHB * item.stockUnits,
-      0
-    );
-
-    const lowStockItems = appliances.filter(
-      (item) => item.stockUnits <= item.lowStockThreshold
-    );
-
-    return {
-      totalUsers: users.length,
-      staffCount,
-      customerCount,
-      grossAssetValue,
-      pendingDispatchCount: 18,
-      pendingSalesVerify: 7,
-      pendingWarehousePack: 11,
-      lowStockCount: lowStockItems.length,
-    };
-  }, [users, appliances]);
-
-  // Filtered Datasets
-  const filteredUsers = useMemo(() => {
-    const query = (userSearch || globalSearch).trim().toLowerCase();
-    return users
-      .filter((u) => {
-        if (deptFilter !== "All" && u.department !== deptFilter) return false;
-        if (statusFilter !== "All" && u.status !== statusFilter) return false;
-        if (query) {
-          const matchName = u.fullName.toLowerCase().includes(query);
-          const matchEmail = u.email.toLowerCase().includes(query);
-          const matchId = u.id.toLowerCase().includes(query);
-          const matchRole = u.roles.some((r) =>
-            r.toLowerCase().includes(query)
-          );
-          return matchName || matchEmail || matchId || matchRole;
-        }
-        return true;
-      })
-      .sort((a, b) =>
-        sortOrder === "asc"
-          ? a.fullName.localeCompare(b.fullName)
-          : b.fullName.localeCompare(a.fullName)
-      );
-  }, [users, userSearch, globalSearch, deptFilter, statusFilter, sortOrder]);
-
-  const filteredAppliances = useMemo(() => {
-    const query = (catalogSearch || globalSearch).trim().toLowerCase();
-    return appliances.filter((item) => {
-      if (categoryFilter !== "All" && item.category !== categoryFilter) {
-        return false;
-      }
-      if (query) {
-        return (
-          item.name.toLowerCase().includes(query) ||
-          item.sku.toLowerCase().includes(query) ||
-          item.category.toLowerCase().includes(query) ||
-          item.wattageOrInverter.toLowerCase().includes(query)
-        );
-      }
-      return true;
-    });
-  }, [appliances, catalogSearch, globalSearch, categoryFilter]);
-
-  const filteredAuditLogs = useMemo(() => {
-    const query = globalSearch.trim().toLowerCase();
-    return auditLogs.filter((entry) => {
-      if (
-        auditEventFilter !== "ALL" &&
-        entry.eventType !== auditEventFilter
-      ) {
-        return false;
-      }
-      if (query) {
-        return (
-          entry.summary.toLowerCase().includes(query) ||
-          entry.operatorName.toLowerCase().includes(query) ||
-          entry.eventType.toLowerCase().includes(query) ||
-          entry.id.toLowerCase().includes(query)
-        );
-      }
-      return true;
-    });
-  }, [auditLogs, auditEventFilter, globalSearch]);
-
-  // Interactive Handlers: Users & RBAC
-  const handleToggleUserStatus = (user: UserAccount) => {
-    const nextStatus: AccountStatus =
-      user.status === "Active" ? "Suspended" : "Active";
-    setUsers((prev) =>
-      prev.map((u) => (u.id === user.id ? { ...u, status: nextStatus } : u))
-    );
-    appendAuditLog(
-      "ROLE_MODIFIED",
-      `Changed account operational status for ${user.fullName} (${user.email}) to [${nextStatus}]`
-    );
-    triggerToast(
-      `Account ${user.fullName} marked as ${nextStatus}`,
-      nextStatus === "Active" ? "success" : "warning"
-    );
-  };
-
-  const handleDispatchPasswordReset = (user: UserAccount) => {
-    appendAuditLog(
-      "ROLE_MODIFIED",
-      `Dispatched encrypted 2FA password reset token to ${user.email}`
-    );
-    triggerToast(`Password reset token dispatched to ${user.email}`, "info");
-  };
-
-  const handleDeleteUser = (user: UserAccount) => {
-    if (user.id === "USR-1001") {
-      triggerToast("Cannot delete primary Super Admin root account", "warning");
-      return;
-    }
-    setUsers((prev) => prev.filter((u) => u.id !== user.id));
-    appendAuditLog(
-      "ROLE_MODIFIED",
-      `Revoked and purged account ${user.fullName} (${user.email}) from RBAC registry`
-    );
-    triggerToast(
-      `User account ${user.fullName} removed from registry`,
-      "warning"
-    );
-  };
-
-  const handleSaveEditedRoles = (
-    user: UserAccount,
-    updatedRoles: RoleType[],
-    updatedDept: DepartmentType
-  ) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? {
-              ...u,
-              roles: updatedRoles,
-              department: updatedDept,
-              accountType: updatedRoles.some((r) => r !== "Customer")
-                ? "Corporate"
-                : "Personal",
-            }
-          : u
-      )
-    );
-
-    appendAuditLog(
-      "ROLE_MODIFIED",
-      `Updated RBAC roles for ${user.fullName}: [${updatedRoles.join(
-        ", "
-      )}] | Dept: ${updatedDept}`
-    );
-    triggerToast(`Staff role permissions updated for ${user.fullName}`);
-    setEditingUserRoles(null);
-  };
-
-  const handleCreateStaffAccount = (payload: {
-    fullName: string;
-    email: string;
-    department: DepartmentType;
-    roles: RoleType[];
-  }) => {
-    const newUser: UserAccount = {
-      id: `USR-${1001 + users.length}`,
-      fullName: payload.fullName,
-      email: payload.email,
-      accountType: payload.roles.some((r) => r !== "Customer")
-        ? "Corporate"
-        : "Personal",
-      department: payload.department,
-      roles: payload.roles,
-      status: "Active",
-      lastSession: "Never (Provisioned Today)",
-      createdAt: "2026-11-11",
-    };
-
-    setUsers((prev) => [newUser, ...prev]);
-    appendAuditLog(
-      "ROLE_MODIFIED",
-      `Provisioned new account ${newUser.fullName} (${
-        newUser.email
-      }) with roles [${newUser.roles.join(", ")}]`
-    );
-    triggerToast(`New staff account ${newUser.fullName} provisioned`);
-  };
-
-  // Interactive Handlers: Catalog Oversight
-  const handleTogglePublishAppliance = (item: ApplianceItem) => {
-    const nextState = !item.published;
-    setAppliances((prev) =>
-      prev.map((a) =>
-        a.id === item.id ? { ...a, published: nextState } : a
-      )
-    );
-    appendAuditLog(
-      "PRICE_OVERRIDE",
-      `Super Admin toggled storefront visibility for SKU ${item.sku} to [${
-        nextState ? "PUBLISHED" : "HIDDEN"
-      }]`
-    );
-    triggerToast(
-      `New appliance SKU synchronized: ${item.sku} is now ${
-        nextState ? "Published" : "Hidden"
-      }`
-    );
-  };
-
-  const handleSaveSafetyThreshold = (
-    item: ApplianceItem,
-    newThreshold: number
-  ) => {
-    const safeVal = Math.max(1, newThreshold);
-    setAppliances((prev) =>
-      prev.map((a) =>
-        a.id === item.id ? { ...a, lowStockThreshold: safeVal } : a
-      )
-    );
-    appendAuditLog(
-      "RESTOCK_INTAKE",
-      `Overrode safety low-stock alert threshold for ${item.sku} (${item.name}) to ${safeVal} units`
-    );
-    triggerToast(
-      `Safety stock threshold updated to ${safeVal} units for ${item.sku}`
-    );
-  };
-
-  const handleQuickEmergencyRestock = (item: ApplianceItem) => {
-    const added = 15;
-    setAppliances((prev) =>
-      prev.map((a) =>
-        a.id === item.id ? { ...a, stockUnits: a.stockUnits + added } : a
-      )
-    );
-    appendAuditLog(
-      "RESTOCK_INTAKE",
-      `Super Admin authorized emergency restock intake (+${added} units) for ${item.sku}`
-    );
-    triggerToast(`Synchronized +${added} warehouse units for ${item.sku}`);
-  };
-
-  const activeBreadcrumb = useMemo(() => {
-    switch (activeTab) {
-      case "overview":
-        return "VoltCraft Hub / Governance / Overview & Operational KPIs";
-      case "users":
-        return "VoltCraft Hub / Governance / User & RBAC Access Control";
-      case "catalog":
-        return "VoltCraft Hub / Governance / Master Catalog & Inventory Oversight";
-      case "audit":
-        return "VoltCraft Hub / Governance / System Security Audit Logs";
-    }
-  }, [activeTab]);
-
   return (
-    <div className={`min-h-screen flex ${THEME.colors.pageBg} text-slate-900`}>
-      <ToastBanner toast={toast} onDismiss={() => setToast(null)} />
+    <div
+      className={`min-h-screen flex flex-col lg:flex-row ${THEME.colors.pageBg} text-slate-900`}
+    >
+      <Toast toast={toast} onDismiss={dismissToast} />
 
-      <AdminSidebar
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        userCount={users.length}
-        lowStockCount={kpiStats.lowStockCount}
-        auditLogCount={auditLogs.length}
-        onSignOut={() =>
-          triggerToast(
-            "Session locked. Re-authentication required for production sign-out.",
-            "info"
-          )
-        }
-      />
+      {/* Mobile slide-over drawer (< lg) */}
+      {isMobileMenuOpen && (
+        <MobileDrawer onClose={() => setIsMobileMenuOpen(false)}>
+          {sidebar}
+        </MobileDrawer>
+      )}
+
+      {/* Desktop persistent sidebar (>= lg) */}
+      <aside className="hidden lg:flex lg:flex-col lg:w-72 lg:sticky lg:top-0 lg:h-screen bg-slate-950 text-slate-100 shrink-0 border-r border-slate-800 select-none">
+        {sidebar}
+      </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <AdminTopBar
-          breadcrumb={activeBreadcrumb}
+        <TopBar
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
           globalSearch={globalSearch}
-          onGlobalSearchChange={setGlobalSearch}
+          setGlobalSearch={setGlobalSearch}
           isNotificationOpen={isNotificationOpen}
-          onToggleNotifications={() => setIsNotificationOpen((prev) => !prev)}
-          lowStockCount={kpiStats.lowStockCount}
-          onOpenAddUserModal={() => setIsAddUserModalOpen(true)}
+          setIsNotificationOpen={setIsNotificationOpen}
+          setIsAddUserModalOpen={setIsAddUserModalOpen}
+          kpiStats={kpiStats}
+          pageMeta={pageMeta}
         />
 
-        <main className="p-6 space-y-6 max-w-[1600px] w-full mx-auto">
-          <ExecutiveKpiGrid
+        {/* Workspace body */}
+        <main className="p-4 pb-24 sm:p-6 sm:pb-24 lg:pb-8 space-y-5 lg:space-y-6 max-w-[1600px] w-full mx-auto">
+          <KpiGrid
+            appliances={appliances}
+            auditLogs={auditLogs}
             kpiStats={kpiStats}
-            activeSkuCount={appliances.length}
-            auditLogCount={auditLogs.length}
           />
 
           {activeTab === "overview" && (
-            <OverviewSection
+            <OverviewTab
               appliances={appliances}
-              onNavigateTab={setActiveTab}
-              onQuickEmergencyRestock={handleQuickEmergencyRestock}
+              handleSelectTab={handleSelectTab}
+              handleQuickEmergencyRestock={handleQuickEmergencyRestock}
             />
           )}
 
           {activeTab === "users" && (
-            <UserRbacTable
-              users={filteredUsers}
+            <UsersTab
               userSearch={userSearch}
-              onUserSearchChange={setUserSearch}
+              setUserSearch={setUserSearch}
               deptFilter={deptFilter}
-              onDeptFilterChange={setDeptFilter}
+              setDeptFilter={setDeptFilter}
               statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
+              setStatusFilter={setStatusFilter}
               sortOrder={sortOrder}
-              onToggleSortOrder={() =>
-                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
-              }
-              onToggleUserStatus={handleToggleUserStatus}
-              onOpenEditRoles={setEditingUserRoles}
-              onDispatchPasswordReset={handleDispatchPasswordReset}
-              onDeleteUser={handleDeleteUser}
+              setSortOrder={setSortOrder}
+              filteredUsers={filteredUsers}
+              handleToggleUserStatus={handleToggleUserStatus}
+              handleDispatchPasswordReset={handleDispatchPasswordReset}
+              handleDeleteUser={handleDeleteUser}
+              openEditRolesModal={openEditRolesModal}
             />
           )}
 
           {activeTab === "catalog" && (
-            <CatalogOversightTable
-              appliances={filteredAppliances}
+            <CatalogTab
               catalogSearch={catalogSearch}
-              onCatalogSearchChange={setCatalogSearch}
+              setCatalogSearch={setCatalogSearch}
               categoryFilter={categoryFilter}
-              onCategoryFilterChange={setCategoryFilter}
-              onSaveSafetyThreshold={handleSaveSafetyThreshold}
-              onQuickEmergencyRestock={handleQuickEmergencyRestock}
-              onTogglePublishAppliance={handleTogglePublishAppliance}
+              setCategoryFilter={setCategoryFilter}
+              filteredAppliances={filteredAppliances}
+              editingThresholdId={editingThresholdId}
+              setEditingThresholdId={setEditingThresholdId}
+              tempThresholdValue={tempThresholdValue}
+              setTempThresholdValue={setTempThresholdValue}
+              handleTogglePublishAppliance={handleTogglePublishAppliance}
+              handleSaveSafetyThreshold={handleSaveSafetyThreshold}
+              handleQuickEmergencyRestock={handleQuickEmergencyRestock}
             />
           )}
 
           {activeTab === "audit" && (
-            <AuditLogTable
-              logs={filteredAuditLogs}
-              totalLogsCount={auditLogs.length}
+            <AuditTab
+              auditLogs={auditLogs}
               auditEventFilter={auditEventFilter}
-              onAuditEventFilterChange={setAuditEventFilter}
+              setAuditEventFilter={setAuditEventFilter}
+              filteredAuditLogs={filteredAuditLogs}
             />
           )}
         </main>
       </div>
 
-      <AddStaffModal
-        isOpen={isAddUserModalOpen}
-        existingUsers={users}
-        onClose={() => setIsAddUserModalOpen(false)}
-        onCreateAccount={handleCreateStaffAccount}
+      <BottomNav
+        activeTab={activeTab}
+        handleSelectTab={handleSelectTab}
+        kpiStats={kpiStats}
       />
 
-      <EditRolesModal
-        user={editingUserRoles}
-        onClose={() => setEditingUserRoles(null)}
-        onSaveRoles={handleSaveEditedRoles}
-        onValidationError={(msg) => triggerToast(msg, "warning")}
-      />
+      {isAddUserModalOpen && (
+        <AddStaffModal
+          setIsAddUserModalOpen={setIsAddUserModalOpen}
+          newFullName={newFullName}
+          setNewFullName={setNewFullName}
+          newEmail={newEmail}
+          setNewEmail={setNewEmail}
+          newPassword={newPassword}
+          setNewPassword={setNewPassword}
+          newDepartment={newDepartment}
+          setNewDepartment={setNewDepartment}
+          newRoles={newRoles}
+          formError={formError}
+          handleToggleNewUserRole={handleToggleNewUserRole}
+          handleCreateStaffAccount={handleCreateStaffAccount}
+        />
+      )}
+
+      {editingUserRoles && (
+        <EditRolesModal
+          editingUserRoles={editingUserRoles}
+          setEditingUserRoles={setEditingUserRoles}
+          tempEditedRoles={tempEditedRoles}
+          tempEditedDept={tempEditedDept}
+          setTempEditedDept={setTempEditedDept}
+          handleToggleTempRole={handleToggleTempRole}
+          handleSaveEditedRoles={handleSaveEditedRoles}
+        />
+      )}
     </div>
   );
 }

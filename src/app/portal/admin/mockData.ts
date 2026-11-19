@@ -1,4 +1,4 @@
-import { UserAccount, ApplianceItem, AuditLogEntry } from "./types";
+import type { ApplianceItem, AuditLogEntry, UserAccount } from "./types";
 
 export const INITIAL_USERS: UserAccount[] = [
   {

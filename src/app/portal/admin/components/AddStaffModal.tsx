@@ -1,92 +1,45 @@
-import React, { useState } from "react";
-import { Plus, XCircle, AlertTriangle } from "lucide-react";
-import { DepartmentType, RoleType, UserAccount } from "../types";
+import type React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { Plus, AlertTriangle, XCircle } from "lucide-react";
+import type { RoleType, DepartmentType } from "../types";
 
 interface AddStaffModalProps {
-  isOpen: boolean;
-  existingUsers: UserAccount[];
-  onClose: () => void;
-  onCreateAccount: (payload: {
-    fullName: string;
-    email: string;
-    department: DepartmentType;
-    roles: RoleType[];
-  }) => void;
+  setIsAddUserModalOpen: Dispatch<SetStateAction<boolean>>;
+  newFullName: string;
+  setNewFullName: Dispatch<SetStateAction<string>>;
+  newEmail: string;
+  setNewEmail: Dispatch<SetStateAction<string>>;
+  newPassword: string;
+  setNewPassword: Dispatch<SetStateAction<string>>;
+  newDepartment: DepartmentType;
+  setNewDepartment: Dispatch<SetStateAction<DepartmentType>>;
+  newRoles: RoleType[];
+  formError: string;
+  handleToggleNewUserRole: (role: RoleType) => void;
+  handleCreateStaffAccount: (e: React.FormEvent) => void;
 }
 
-const ALL_ROLES: RoleType[] = ["Admin", "Sales", "Warehouse", "Customer"];
-
-export function AddStaffModal({
-  isOpen,
-  existingUsers,
-  onClose,
-  onCreateAccount,
+export default function AddStaffModal({
+  setIsAddUserModalOpen,
+  newFullName,
+  setNewFullName,
+  newEmail,
+  setNewEmail,
+  newPassword,
+  setNewPassword,
+  newDepartment,
+  setNewDepartment,
+  newRoles,
+  formError,
+  handleToggleNewUserRole,
+  handleCreateStaffAccount,
 }: AddStaffModalProps) {
-  const [newFullName, setNewFullName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("VoltCraft#2026!");
-  const [newDepartment, setNewDepartment] = useState<DepartmentType>("Sales");
-  const [newRoles, setNewRoles] = useState<RoleType[]>(["Sales", "Customer"]);
-  const [formError, setFormError] = useState("");
-
-  if (!isOpen) return null;
-
-  const handleToggleRole = (role: RoleType) => {
-    setNewRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-    );
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError("");
-
-    const trimmedName = newFullName.trim();
-    const trimmedEmail = newEmail.trim().toLowerCase();
-
-    if (!trimmedName || !trimmedEmail) {
-      setFormError("Please enter both Full Name and Corporate Email.");
-      return;
-    }
-
-    if (newRoles.length === 0) {
-      setFormError("Select at least one RBAC role for this account.");
-      return;
-    }
-
-    const emailExists = existingUsers.some(
-      (u) => u.email.toLowerCase() === trimmedEmail
-    );
-    if (emailExists) {
-      setFormError(
-        "Email duplication prevented: This email already exists. Assign additional roles to the existing account instead."
-      );
-      return;
-    }
-
-    onCreateAccount({
-      fullName: trimmedName,
-      email: trimmedEmail,
-      department: newDepartment,
-      roles: newRoles,
-    });
-
-    // Reset internal form state
-    setNewFullName("");
-    setNewEmail("");
-    setNewPassword("VoltCraft#2026!");
-    setNewDepartment("Sales");
-    setNewRoles(["Sales", "Customer"]);
-    setFormError("");
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-slate-950/70 backdrop-blur-xs">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-lg w-full max-h-[92dvh] flex flex-col border-t sm:border border-slate-200 shadow-2xl overflow-hidden">
+        <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0">
               <Plus className="w-5 h-5" />
             </div>
             <div>
@@ -94,20 +47,22 @@ export function AddStaffModal({
                 Provision New VoltCraft Account
               </h3>
               <p className="text-[11px] text-slate-400">
-                Multi-role RBAC assignment without email duplication
+                Multi-role RBAC without email duplication
               </p>
             </div>
           </div>
           <button
-            type="button"
-            onClick={onClose}
-            className="text-slate-400 hover:text-white cursor-pointer"
+            onClick={() => setIsAddUserModalOpen(false)}
+            className="text-slate-400 hover:text-white p-1 cursor-pointer"
           >
             <XCircle className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+        <form
+          onSubmit={handleCreateStaffAccount}
+          className="p-5 sm:p-6 space-y-4 text-xs overflow-y-auto"
+        >
           {formError && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-medium flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -175,19 +130,20 @@ export function AddStaffModal({
             </select>
           </div>
 
-          {/* Multi-Select Checkboxes for Roles */}
+          {/* Multi-Select Checkboxes for Roles (Fixed Double-Click Handler) */}
           <div>
             <label className="font-bold text-slate-700 block mb-1.5">
               Assigned RBAC Roles (Multi-Select Enabled) *
             </label>
             <div className="grid grid-cols-2 gap-2.5">
-              {ALL_ROLES.map((role) => {
+              {(
+                ["Admin", "Sales", "Warehouse", "Customer"] as RoleType[]
+              ).map((role) => {
                 const checked = newRoles.includes(role);
                 return (
                   <label
                     key={role}
-                    onClick={() => handleToggleRole(role)}
-                    className={`p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer transition-all ${
+                    className={`p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer transition-all select-none ${
                       checked
                         ? "bg-amber-50/70 border-amber-500 font-bold text-slate-900"
                         : "bg-slate-50 border-slate-200 text-slate-600"
@@ -196,8 +152,8 @@ export function AddStaffModal({
                     <input
                       type="checkbox"
                       checked={checked}
-                      onChange={() => {}}
-                      className="accent-amber-500"
+                      onChange={() => handleToggleNewUserRole(role)}
+                      className="accent-amber-500 w-4 h-4"
                     />
                     <span>[{role}]</span>
                   </label>
@@ -209,14 +165,14 @@ export function AddStaffModal({
           <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold cursor-pointer"
+              onClick={() => setIsAddUserModalOpen(false)}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold cursor-pointer"
+              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold cursor-pointer"
             >
               Provision Account
             </button>

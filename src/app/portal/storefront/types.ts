@@ -1,45 +1,19 @@
 import type { Dispatch, SetStateAction } from "react";
+import type { BaseProduct } from "@/types/product";
 
-export type CategoryType =
-  | "All"
-  | "Climate Control"
-  | "Refrigeration"
-  | "Smart Cleaning"
-  | "Kitchen Tech"
-  | "Air Quality";
+export type CategoryType = string;
+export type SortOption = "featured" | "price-asc" | "price-desc" | "rating-desc" | "newest";
 
-export type WattageTier = "All" | "Low (<500W)" | "Medium (500W-1500W)" | "High (>1500W)";
-export type SortOption = "featured" | "price-asc" | "price-desc" | "rating-desc";
-
-export interface ApplianceProduct {
-  id: string;
-  name: string;
-  modelCode: string;
-  category: Exclude<CategoryType, "All">;
-  price: number;
-  originalPrice: number;
-  rating: number;
-  reviewsCount: number;
-  wattage: number;
-  inverter: boolean;
-  energyStar: boolean;
-  smartWifi: boolean;
-  ultraQuiet: boolean;
-  noiseLevelDb: number;
-  cordLengthM: number;
-  circuitBreaker: string;
-  dimensions: string;
-  warrantyYears: number;
-  primarySpec: string;
-  secondarySpec: string;
-  badges: {
+export interface ApplianceProduct extends BaseProduct {
+  id: string; // แปลงมาจาก _id
+  categoryName: string;
+  image: string; // images[0]
+  inStock: boolean; // stock.available > 0
+  badges?: {
     discount?: string;
-    tech: string;
-    service: string;
+    tech?: string;
+    service?: string;
   };
-  image: string;
-  inStock: boolean;
-  description: string;
 }
 
 export interface CartItem {
@@ -69,6 +43,7 @@ export interface ProductFiltersApi {
   setMobileSearchOpen: Dispatch<SetStateAction<boolean>>;
   selectedCategory: CategoryType;
   setSelectedCategory: Dispatch<SetStateAction<CategoryType>>;
+  availableCategories: string[]; // รายชื่อหมวดหมู่ที่มีจริงจาก API
   sortBy: SortOption;
   setSortBy: Dispatch<SetStateAction<SortOption>>;
   isFilterDrawerOpen: boolean;
@@ -77,18 +52,13 @@ export interface ProductFiltersApi {
   setMinPrice: Dispatch<SetStateAction<number>>;
   maxPrice: number;
   setMaxPrice: Dispatch<SetStateAction<number>>;
-  wattageTier: WattageTier;
-  setWattageTier: Dispatch<SetStateAction<WattageTier>>;
-  onlyEnergyStar: boolean;
-  setOnlyEnergyStar: Dispatch<SetStateAction<boolean>>;
-  onlyInverter: boolean;
-  setOnlyInverter: Dispatch<SetStateAction<boolean>>;
-  onlySmartWifi: boolean;
-  setOnlySmartWifi: Dispatch<SetStateAction<boolean>>;
-  onlyUltraQuiet: boolean;
-  setOnlyUltraQuiet: Dispatch<SetStateAction<boolean>>;
+  dynamicMaxPrice: number; // ราคาสูงสุดของสินค้าในระบบ
+  onlyInStock: boolean;
+  setOnlyInStock: Dispatch<SetStateAction<boolean>>;
   onlyWishlist: boolean;
   setOnlyWishlist: Dispatch<SetStateAction<boolean>>;
+  selectedAttributes: Record<string, string>; // กรองตาม attributes ใน Schema เช่น { Resolution: "4K QLED" }
+  setAttributeFilter: (key: string, value: string) => void;
   resetAllFilters: () => void;
   filteredProducts: ApplianceProduct[];
   activeFilterCount: number;

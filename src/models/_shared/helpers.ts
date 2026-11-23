@@ -1,4 +1,4 @@
-import { model, models, Schema} from "mongoose";
+import { InferSchemaType, Model, model, models, Schema} from "mongoose";
 
 export const opts = { timestamps: true } as const;
 export const ref = (name: string) => ({

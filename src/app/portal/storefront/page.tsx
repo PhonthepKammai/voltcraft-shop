@@ -13,10 +13,10 @@ import MobileCartBar from "./components/MobileCartBar";
 import ProductGrid from "./components/ProductGrid";
 import PromoBanner from "./components/PromoBanner";
 import QuickViewModal from "./components/QuickViewModal";
-import Toast from "./components/ui/Toast";
+import Toast from "@/components/ui/BaseToast";
 import { useCart } from "./hooks/useCart";
 import { useProductFilters } from "./hooks/useProductFilters";
-import { useToast } from "./hooks/useToast";
+import { useToast } from "@/hooks/userToast";
 import { useWishlist } from "./hooks/useWishlist";
 import type { ApplianceProduct } from "./types";
 

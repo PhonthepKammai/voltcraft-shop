@@ -1,15 +1,14 @@
 import { Lock, Mail, User, ArrowRight, CheckCircle2, Building2, AlertCircle } from "lucide-react";
 import { INPUT_CLASS, LABEL_CLASS } from "../constants";
-import type { AuthApi } from "../hooks/useAuth";
 import { PASSWORD_STRENGTH_LABELS, getPasswordStrength } from "../utils";
+import { useAuthContext } from "@/context/AuthContext";
 import AuthTabs from "./AuthTabs";
 import PasswordToggle from "./ui/PasswordToggle";
 
-interface RegisterViewProps {
-  auth: AuthApi;
-}
 
-export default function RegisterView({ auth }: RegisterViewProps) {
+export default function RegisterView() {
+
+  const auth = useAuthContext();
   const {
     isLoading,
     fullName,

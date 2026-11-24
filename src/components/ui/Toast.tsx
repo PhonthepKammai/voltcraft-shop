@@ -11,15 +11,15 @@ import {
 
 export type ToastVariant = "success" | "warning" | "error" | "info";
 
-export interface BaseToastData {
+export interface ToastData {
   title: string;
   detail?: string;
   variant?: ToastVariant;
   icon?: LucideIcon;
 }
 
-interface BaseToastProps {
-  toast: BaseToastData | null;
+interface ToastProps {
+  toast: ToastData | null;
   onDismiss?: () => void;
 }
 
@@ -53,7 +53,7 @@ const VARIANT_CONFIG: Record<
   },
 };
 
-export default function BaseToast({ toast, onDismiss }: BaseToastProps) {
+export default function Toast({ toast, onDismiss }: ToastProps) {
   if (!toast) return null;
 
   const variant = toast.variant ?? "info";

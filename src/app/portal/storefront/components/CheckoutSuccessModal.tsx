@@ -1,5 +1,4 @@
 import { ShieldCheck } from "lucide-react";
-import { formatTHB } from "../utils";
 import type { CartCalculations } from "../types";
 
 interface CheckoutSuccessModalProps {
@@ -31,7 +30,6 @@ export default function CheckoutSuccessModal({ cartCalculations, onClose, onComp
           Your order total of{" "}
           <strong className="text-slate-900">
             ${cartCalculations.finalTotalUSD.toLocaleString()} (
-            {formatTHB(cartCalculations.finalTotalUSD)})
           </strong>{" "}
           is ready for dispatch with digital warranty registration and white-glove fleet
           scheduling.

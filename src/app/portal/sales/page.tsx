@@ -12,15 +12,15 @@ import RoleBanner from "./components/RoleBanner";
 import SlipInspectorModal from "./components/SlipInspectorModal";
 import TabSwitcher from "./components/TabSwitcher";
 import TopBar from "./components/TopBar";
-import Toast from "./components/ui/Toast";
+import BaseToast from "@/components/ui/BaseToast";
 import { useCatalog } from "./hooks/useCatalog";
 import { useOrders } from "./hooks/useOrders";
-import { useToast } from "./hooks/useToast";
+import { useToast } from "@/app/hooks/useToast";
 import type { ActivePortalTab } from "./types";
 
 export default function VoltCraftSalesPortalPage() {
   const [activeTab, setActiveTab] = useState<ActivePortalTab>("orders");
-  const { toastMessage, showToast, dismissToast } = useToast();
+  const { toast, showToast, dismissToast } = useToast();
   const ordersApi = useOrders(showToast);
   const catalogApi = useCatalog(showToast, () => setActiveTab("catalog"));
 

@@ -12,11 +12,11 @@ import OverviewTab from "./components/OverviewTab";
 import SidebarContent from "./components/SidebarContent";
 import TopBar from "./components/TopBar";
 import UsersTab from "./components/UsersTab";
-import Toast from "./components/ui/Toast";
+import Toast from "@/components/ui/Toast";
 import { useAuditLog } from "./hooks/useAuditLog";
 import { useCatalog } from "./hooks/useCatalog";
 import { useKpiStats } from "./hooks/useKpiStats";
-import { useToast } from "./hooks/useToast";
+import { useToast } from "@/app/hooks/useToast";
 import { useUsers } from "./hooks/useUsers";
 import { THEME } from "./theme";
 import type { NavTab } from "./types";
@@ -30,17 +30,17 @@ export default function VoltCraftSuperAdminHub() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   // Domain hooks
-  const { toast, triggerToast, dismissToast } = useToast();
+  const { toast, showToast, dismissToast } = useToast();
   const auditApi = useAuditLog(globalSearch);
   const usersApi = useUsers(
     globalSearch,
     auditApi.appendAuditLog,
-    triggerToast,
+    showToast,
   );
   const catalogApi = useCatalog(
     globalSearch,
     auditApi.appendAuditLog,
-    triggerToast,
+    showToast,
   );
   const kpiStats = useKpiStats(usersApi.users, catalogApi.appliances);
   const pageMeta = getPageMeta(activeTab);
@@ -118,7 +118,7 @@ export default function VoltCraftSuperAdminHub() {
       handleSelectTab={handleSelectTab}
       setIsMobileMenuOpen={setIsMobileMenuOpen}
       kpiStats={kpiStats}
-      triggerToast={triggerToast}
+      triggerToast={showToast}
       users={users}
       auditLogs={auditLogs}
     />

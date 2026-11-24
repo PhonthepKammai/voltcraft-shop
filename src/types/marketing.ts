@@ -1,6 +1,6 @@
 import { CouponType, ReviewStatus } from "./constants";
 import { BaseProduct } from "./product";
-import { BaseUser } from "./ีuser";
+import { BaseUser } from "./user";
 
 export interface BaseCoupon {
   _id: string;

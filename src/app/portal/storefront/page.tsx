@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CartDrawer from "./components/CartDrawer";
 import CategoryNav from "./components/CategoryNav";
 import CheckoutSuccessModal from "./components/CheckoutSuccessModal";
@@ -13,10 +13,10 @@ import MobileCartBar from "./components/MobileCartBar";
 import ProductGrid from "./components/ProductGrid";
 import PromoBanner from "./components/PromoBanner";
 import QuickViewModal from "./components/QuickViewModal";
-import Toast from "@/components/ui/BaseToast";
+import BaseToast from "@/components/ui/BaseToast";
 import { useCart } from "./hooks/useCart";
 import { useProductFilters } from "./hooks/useProductFilters";
-import { useToast } from "@/hooks/userToast";
+import { useToast } from "@/app/hooks/useToast";
 import { useWishlist } from "./hooks/useWishlist";
 import type { ApplianceProduct } from "./types";
 
@@ -32,6 +32,28 @@ function normalizeApiProduct(item: any): ApplianceProduct {
       ? Number(item.stock.available ?? item.stock.onHand ?? 0)
       : Number(item.stock ?? 0);
 
+  const basePrice = Number(item.price ?? 0);
+  const now = new Date();
+  const sale = item.sale;
+  const isSaleActive =
+    sale?.isActive &&
+    Number(sale.value ?? 0) > 0 &&
+    (!sale.startsAt || new Date(sale.startsAt) <= now) &&
+    (!sale.expiresAt || new Date(sale.expiresAt) >= now);
+
+  const discountAmount = isSaleActive
+    ? sale.type === "percent"
+      ? Math.round((basePrice * Number(sale.value)) / 100)
+      : Number(sale.value)
+    : 0;
+
+  const finalPrice = Math.max(0, basePrice - discountAmount);
+  const discountBadge = isSaleActive
+    ? sale.type === "percent"
+      ? `ลด ${sale.value}%`
+      : `ลด ฿${Number(sale.value).toLocaleString()}`
+    : item.badges?.discount;
+
   const attrs: Record<string, string> = item.attributes ?? {};
   const attrEntries = Object.entries(attrs).map(([k, v]) => `${k}: ${v}`);
 
@@ -40,34 +62,33 @@ function normalizeApiProduct(item: any): ApplianceProduct {
     id: String(item._id ?? item.id),
     _id: String(item._id ?? item.id),
     sku: item.sku ?? "",
-    modelCode: item.sku ?? item.slug ?? "", // รองรับ ProductCard / QuickViewModal เดิม
+    modelCode: item.sku ?? item.slug ?? "",
     name: item.name ?? "Unnamed Appliance",
     slug: item.slug ?? "",
     description: item.description ?? "",
     categoryId: item.categoryId ?? null,
     categoryName,
-    category: categoryName, // รองรับ Component เดิมที่เรียก product.category
-    price: Number(item.price ?? 0),
-    originalPrice: Number(item.originalPrice ?? item.price ?? 0),
+    category: categoryName,
+    price: finalPrice, // ราคาขายสุทธิหลังหักโปรโมชัน
+    originalPrice: isSaleActive ? basePrice : Number(item.originalPrice ?? basePrice), // ราคาเต็มก่อนลด (เอาไว้ขีดฆ่า)
     images: Array.isArray(item.images) ? item.images : [],
     image: item.images?.[0] ?? "https://placehold.co/600x400?text=VoltCraft",
     attributes: attrs,
     status: item.status ?? "active",
     ratingAvg: Number(item.ratingAvg ?? 0),
     ratingCount: Number(item.ratingCount ?? 0),
-    rating: Number(item.ratingAvg ?? 0), // รองรับ ProductCard เดิมที่เรียก product.rating
-    reviewsCount: Number(item.ratingCount ?? 0), // รองรับ ProductCard เดิมที่เรียก product.reviewsCount
+    rating: Number(item.ratingAvg ?? 0),
+    reviewsCount: Number(item.ratingCount ?? 0),
     stock: {
       onHand: Number(item.stock?.onHand ?? availableStock),
       reserved: Number(item.stock?.reserved ?? 0),
       available: availableStock,
     },
     inStock: availableStock > 0,
-    // ดึงค่าจาก attributes (เช่น ScreenSize, Resolution) มาแสดงเป็นสเปกบนการ์ด
     primarySpec: attrEntries[0] ?? item.description ?? "-",
     secondarySpec: attrEntries[1] ?? "",
     badges: {
-      discount: item.badges?.discount ?? undefined,
+      discount: discountBadge,
       tech: Object.values(attrs)[0] ? String(Object.values(attrs)[0]) : "VoltCraft",
       service: availableStock > 0 ? `พร้อมส่ง (${availableStock})` : "สินค้าหมด",
     },
@@ -75,7 +96,14 @@ function normalizeApiProduct(item: any): ApplianceProduct {
 }
 
 export default function VoltCraftStorefrontPage() {
-  const { toastMessage, triggerToast } = useToast();
+  const { toast, showToast, dismissToast } = useToast();
+
+  const triggerToast = useCallback(
+    (message: string) => {
+      showToast(message, "success");
+    },
+    [showToast]
+  );
   const { wishlistIds, toggleWishlist } = useWishlist(triggerToast);
 
   const [products, setProducts] = useState<ApplianceProduct[]>([]);
@@ -109,9 +137,18 @@ export default function VoltCraftStorefrontPage() {
         if (!res.ok) throw new Error("ไม่สามารถโหลดข้อมูลสินค้าได้");
 
         const json = await res.json();
-        const rawList = Array.isArray(json)
-          ? json
-          : json.products || json.data || [];
+
+        // ดึง Array ออกมาจากชั้นของ response (รองรับทั้ง { data: [...] }, { data: { items: [...] } }, { products: [...] })
+        const payload = json?.data ?? json;
+        const rawList = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.items)
+          ? payload.items
+          : Array.isArray(payload?.products)
+          ? payload.products
+          : Array.isArray(payload?.docs)
+          ? payload.docs
+          : [];
 
         const mappedProducts = rawList.map(normalizeApiProduct);
         setProducts(mappedProducts);
@@ -210,7 +247,7 @@ export default function VoltCraftStorefrontPage() {
       )}
 
       {/* Toast & floating mobile cart bar */}
-      <Toast message={toastMessage} />
+      <BaseToast toast={toast} onDismiss={dismissToast} />
       {totalCartItems > 0 && !isCartOpen && (
         <MobileCartBar
           totalCartItems={totalCartItems}

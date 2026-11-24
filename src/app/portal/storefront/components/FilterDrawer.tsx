@@ -1,5 +1,4 @@
 import { SlidersHorizontal, X, Check, ArrowRight } from "lucide-react";
-import { formatTHB } from "../utils";
 import type { ProductFiltersApi, WattageTier } from "../types";
 
 interface FilterDrawerProps {
@@ -61,10 +60,10 @@ export default function FilterDrawer({ filters }: FilterDrawerProps) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Price Range (USD / THB Equivalent)
+                Price Range (THB Equivalent)
               </label>
               <span className="text-xs font-extrabold text-amber-600">
-                ${minPrice} – ${maxPrice} ({formatTHB(maxPrice)})
+                ${minPrice} – ${maxPrice}
               </span>
             </div>
 

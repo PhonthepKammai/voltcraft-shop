@@ -1,18 +1,17 @@
-import { Lock, Mail, ArrowRight, CheckCircle2, KeyRound } from "lucide-react";
-import { DEMO_ACCOUNTS } from "../demoAccounts";
+"use client";
+
+import { Lock, Mail, ArrowRight, KeyRound, Home } from "lucide-react";
 import { INPUT_CLASS, LABEL_CLASS } from "../constants";
-import type { AuthApi } from "../hooks/useAuth";
-import type { ShowToast } from "../types";
+import { useAuthContext } from "@/context/AuthContext";
 import AuthTabs from "./AuthTabs";
 import PasswordToggle from "./ui/PasswordToggle";
 
-interface LoginViewProps {
-  auth: AuthApi;
-  showToast: ShowToast;
-}
 
-export default function LoginView({ auth, showToast }: LoginViewProps) {
+export default function LoginView() {
+
+  const auth = useAuthContext();
   const {
+    showToast,
     isLoading,
     loginEmail,
     setLoginEmail,
@@ -21,29 +20,28 @@ export default function LoginView({ auth, showToast }: LoginViewProps) {
     showLoginPassword,
     setShowLoginPassword,
     handleLogin,
-    fillDemoAccount,
     switchView,
   } = auth;
 
   return (
     <section className="mx-auto w-full max-w-md animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl">
-        <AuthTabs active="login" onSwitch={switchView} />
-
-        <div className="p-5 sm:p-8">
-          <div className="mb-7">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
+        {/* <AuthTabs active="login" onSwitch={switchView} /> */}
+        <div className="flex justify-between border-b border-slate-800 p-4 gap-4">
+          <div className="flex gap-4 items-center">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
               <KeyRound size={22} />
             </div>
-
-            <h2 className="text-2xl font-bold tracking-tight text-white">
-              Welcome back
+            <h2 className="text-2xl font-bold">
+              Sign In
             </h2>
-
-            <p className="mt-2 text-sm leading-relaxed text-slate-300">
-              Sign in to access your VoltCraft account.
-            </p>
           </div>
+          <span className="flex items-center text-sm">
+            ← Back to Store
+          </span>
+        </div>
+
+        <div className="p-5 sm:p-8">
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
@@ -136,66 +134,6 @@ export default function LoginView({ auth, showToast }: LoginViewProps) {
               )}
             </button>
           </form>
-
-          {/* Demo Accounts */}
-          <div className="mt-8 border-t border-slate-700 pt-6">
-            <div className="mb-4 flex flex-col gap-1">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                Quick Demo Logins
-              </h3>
-
-              <p className="text-xs text-slate-400">
-                Click to auto-fill demo credentials.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {DEMO_ACCOUNTS.map((account) => (
-                <button
-                  key={account.email}
-                  type="button"
-                  onClick={() =>
-                    fillDemoAccount(account.email)
-                  }
-                  className={`flex min-h-[68px] items-center gap-3 rounded-xl border p-3 text-left transition-all active:scale-95 ${
-                    loginEmail === account.email
-                      ? "border-amber-500/60 bg-amber-500/10"
-                      : "border-slate-700 bg-slate-950 hover:border-slate-500 hover:bg-slate-800"
-                  }`}
-                >
-                  <div className={account.color}>
-                    {account.icon}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-slate-100">
-                      {account.label}
-                    </p>
-
-                    <p className="mt-1 truncate text-[10px] text-slate-400">
-                      {account.description}
-                    </p>
-                  </div>
-
-                  {loginEmail === account.email && (
-                    <CheckCircle2
-                      size={16}
-                      className="shrink-0 text-amber-400"
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-3 rounded-lg border border-slate-700 bg-slate-950 p-3">
-              <p className="text-center text-xs text-slate-300">
-                Demo password:{" "}
-                <span className="font-mono font-bold text-amber-400">
-                  password123
-                </span>
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 

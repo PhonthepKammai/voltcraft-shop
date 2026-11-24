@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { BaseToastData, ToastVariant } from "@/components/ui/BaseToast";
+import type { ToastData, ToastVariant } from "@/components/ui/Toast";
 
 export function useToast(defaultDuration = 3500) {
-  const [toast, setToast] = useState<BaseToastData | null>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dismissToast = useCallback(() => {
@@ -14,13 +14,13 @@ export function useToast(defaultDuration = 3500) {
 
   const showToast = useCallback(
     (
-      input: string | BaseToastData,
+      input: string | ToastData,
       variant: ToastVariant = "info",
       duration = defaultDuration
     ) => {
       if (timerRef.current) clearTimeout(timerRef.current);
 
-      const data: BaseToastData =
+      const data: ToastData =
         typeof input === "string" ? { title: input, variant } : input;
 
       setToast(data);

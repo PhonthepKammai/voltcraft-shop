@@ -1,5 +1,4 @@
 import { ShieldCheck, ChevronRight } from "lucide-react";
-import { formatTHB } from "../utils";
 import type { CartCalculations } from "../types";
 
 interface CartSummaryProps {
@@ -53,9 +52,6 @@ export default function CartSummary({ totalCartItems, cartCalculations, onChecko
           <div className="text-right">
             <span className="text-lg font-extrabold text-slate-900">
               ${cartCalculations.finalTotalUSD.toLocaleString()}
-            </span>
-            <span className="block text-[11px] font-semibold text-slate-500">
-              Approx. {formatTHB(cartCalculations.finalTotalUSD)} (VAT Incl.)
             </span>
           </div>
         </div>

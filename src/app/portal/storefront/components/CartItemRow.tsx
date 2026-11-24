@@ -1,6 +1,5 @@
 import { Wrench, Plus, Minus, Trash2 } from "lucide-react";
 import { INSTALLATION_FEE_THB, INSTALLATION_FEE_USD } from "../constants";
-import { formatTHB } from "../utils";
 import type { CartAddOnField, CartItem } from "../types";
 
 interface CartItemRowProps {
@@ -48,9 +47,6 @@ export default function CartItemRow({ item, onRemove, onQuantityChange, onToggle
             <div>
               <span className="text-sm font-extrabold text-slate-900">
                 ${(item.product.price * item.quantity).toLocaleString()}
-              </span>
-              <span className="text-[11px] text-slate-500 ml-1">
-                ({formatTHB(item.product.price * item.quantity)})
               </span>
             </div>
 

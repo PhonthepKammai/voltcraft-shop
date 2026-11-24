@@ -1,6 +1,5 @@
 import { ShoppingBag, Star, Wrench, X } from "lucide-react";
 import { INSTALLATION_FEE_THB, INSTALLATION_FEE_USD } from "../constants";
-import { formatTHB } from "../utils";
 import type { ApplianceProduct } from "../types";
 
 interface QuickViewModalProps {
@@ -102,9 +101,6 @@ export default function QuickViewModal({ product, onClose, onOpenCart, onAddToCa
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-extrabold text-slate-900">
                       ${product.price.toLocaleString()}
-                    </span>
-                    <span className="text-sm font-semibold text-slate-500">
-                      ({formatTHB(product.price)})
                     </span>
                   </div>
                   <span className="text-xs text-slate-400 line-through">

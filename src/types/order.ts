@@ -1,5 +1,5 @@
 import { OrderChannel, OrderStatus, PaymentMethod, PaymentStatus, PaymentVerifyStatus, ShipmentStatus } from "./constants";
-import { BaseUser, UserAddress } from "./ีuser";
+import { BaseUser, UserAddress } from "./user";
 
 export interface OrderItemSnapshot {
   productId: string;
